@@ -2,7 +2,10 @@ import 'package:chtapp/screens/auth.dart';
 import 'package:chtapp/screens/homeScreen.dart';
 import 'package:chtapp/screens/register_page.dart';
 import 'package:chtapp/screens/request.dart';
+<<<<<<< HEAD
 import 'package:firebase_auth/firebase_auth.dart';
+=======
+>>>>>>> 9f7300153d54612f6a1810e3be46ac5bc3c3b6ce
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'firebase_options.dart';
@@ -28,6 +31,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+<<<<<<< HEAD
 
 
 
@@ -51,3 +55,5 @@ class AuthWrapper extends StatelessWidget {
     );
   }
 }
+=======
+>>>>>>> 9f7300153d54612f6a1810e3be46ac5bc3c3b6ce
