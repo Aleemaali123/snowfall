@@ -85,8 +85,10 @@ class _UserRegisterPageState extends State<UserRegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
      //backgroundColor: Theme.of(context).colorScheme.primary,
+        //backgroundColor: const Color(0xFFDFFEF4), // ✅ Light greenish blue color
 
-      body: Stack(
+
+        body: Stack(
         children: [
       // ✅ Lottie Snowfall Background
       Positioned.fill(

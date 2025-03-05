@@ -6,7 +6,8 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'homeScreen.dart';
+import '../bottom_bar/Homepage.dart';
+import 'show_request.dart';
 
 class UserRequestPage extends StatefulWidget {
   const UserRequestPage({super.key});
@@ -203,7 +204,7 @@ class _UserRequestPageState extends State<UserRequestPage> {
       }
 
       // Store request data in Firestore
-      await FirebaseFirestore.instance.collection('request').add({
+      DocumentReference requestRef = await FirebaseFirestore.instance.collection('request').add({
         'location': _locationController.text,
         'area': _areaController.text,
         'date_time': _dateTimeController.text,
@@ -211,6 +212,7 @@ class _UserRequestPageState extends State<UserRequestPage> {
         'agency': category == 1 ? selectedAgency : null,
         'image1': imageUrl1 ?? "", // Store Firebase Storage URL
         'image2': imageUrl2 ?? "",
+        'status':"pending",
         'timestamp': FieldValue.serverTimestamp(),
       });
 
@@ -218,11 +220,16 @@ class _UserRequestPageState extends State<UserRequestPage> {
         const SnackBar(content: Text("✅ Request Sent Successfully!")),
       );
 
+
+
       // Navigate to homepage after successful submission
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => Homescreen()),
+        MaterialPageRoute(builder: (context) => StatusTabScreen()),
       );
+
+      // // ✅ Start listening for status change
+      // _trackRequestStatus(requestRef.id);
     } catch (e) {
       print("❌ Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -232,247 +239,275 @@ class _UserRequestPageState extends State<UserRequestPage> {
   }
 
 
+  // void _trackRequestStatus(String orderId) {
+  //   FirebaseFirestore.instance.collection('request').doc(orderId).snapshots().listen((snapshot) {
+  //     if (snapshot.exists) {
+  //       String status = snapshot.data()?['status'] ?? "pending";
+  //
+  //       if (status == "accepted") {
+  //         // ✅ Navigate to Tracking Screen only when accepted
+  //         Navigator.pushReplacement(
+  //           context,
+  //           MaterialPageRoute(builder: (context) => TrackingScreen(orderId: orderId)),
+  //         );
+  //       }
+  //     }
+  //   });
+  // }
+
+
+  // void acceptRequest(String orderId) {
+  //   FirebaseFirestore.instance.collection('request').doc(orderId).update({
+  //     'status': "accepted",
+  //   });
+  // }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFDFFEF4), // ✅ Light greenish blue color
+
       resizeToAvoidBottomInset: true,
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        title: const Text("User Request Page"),
-        centerTitle: true,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-      ),
-      body: Center(
+      //backgroundColor: Theme.of(context).colorScheme.background,
+      // appBar: AppBar(
+      //   title: const Text("User Request Page"),
+      //   centerTitle: true,
+      //   backgroundColor: Theme.of(context).colorScheme.primary,
+      //
+      // ),
+      body:
+      Center(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: SingleChildScrollView(
-            child: Card(
-              elevation: 8,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 10),
-                    TextFormField(
-                      controller: _locationController,
-                      decoration: InputDecoration(
-                        labelText: "Your Location",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        suffixIcon: const Icon(Icons.location_on, color: Colors.red),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+
+                  Text("Send Request here...",
+                  style: TextStyle(
+                    fontSize: 25
+                  ),
+                  ),
+                   SizedBox(height: 10),
+                  TextFormField(
+                    controller: _locationController,
+                    decoration: InputDecoration(
+                      labelText: "Your Location",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      onTap: () {
-                        _getCurrentLocation();
-                      },
+                      suffixIcon: const Icon(Icons.location_on, color: Colors.red),
                     ),
-                    const SizedBox(height: 10),
-                    TextFormField(
-                      controller: _areaController,
-                      decoration: InputDecoration(
-                        labelText: "Approximate Area",
-                        suffixIcon: const Icon(Icons.area_chart),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                    onTap: () {
+                      _getCurrentLocation();
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _areaController,
+                    decoration: InputDecoration(
+                      labelText: "Approximate Area",
+                      suffixIcon: const Icon(Icons.area_chart),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    const Text("Upload Weather Images"),
-                    const SizedBox(height: 5),
-            
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Column(
-                          children: [
-                            if (image1 != null)
-                              Stack(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.file(
-                                      image1!,
-                                      height: 80,
-                                      width: 80,
-                                      fit: BoxFit.cover,
-                                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text("Upload Weather Images"),
+                  const SizedBox(height: 5),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Column(
+                        children: [
+                          if (image1 != null)
+                            Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.file(
+                                    image1!,
+                                    height: 80,
+                                    width: 80,
+                                    fit: BoxFit.cover,
                                   ),
-                                  Positioned(
-                                    right: 0,
-                                    top: 0,
-                                    child: GestureDetector(
-                                      onTap: () => removeImage(1),
-                                      child: Container(
-                                        decoration: const BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Colors.red,
-                                        ),
-                                        padding: const EdgeInsets.all(4),
-                                        child: const Icon(
-                                          Icons.close,
-                                          color: Colors.white,
-                                          size: 18,
-                                        ),
+                                ),
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  child: GestureDetector(
+                                    onTap: () => removeImage(1),
+                                    child: Container(
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.red,
+                                      ),
+                                      padding: const EdgeInsets.all(4),
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 18,
                                       ),
                                     ),
                                   ),
-                                ],
-                              )
-                            else
-                              ElevatedButton.icon(
-                                onPressed: () => pickImage(1),
-                                icon: const Icon(Icons.cloud_upload),
-                                label: const Text("Upload 1"),
-                              ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            if (image2 != null)
-                              Stack(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.file(
-                                      image2!,
-                                      height: 80,
-                                      width: 80,
-                                      fit: BoxFit.cover,
-                                    ),
+                                ),
+                              ],
+                            )
+                          else
+                            ElevatedButton.icon(
+                              onPressed: () => pickImage(1),
+                              icon: const Icon(Icons.cloud_upload),
+                              label: const Text("Upload 1"),
+                            ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          if (image2 != null)
+                            Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.file(
+                                    image2!,
+                                    height: 80,
+                                    width: 80,
+                                    fit: BoxFit.cover,
                                   ),
-                                  Positioned(
-                                    right: 0,
-                                    top: 0,
-                                    child: GestureDetector(
-                                      onTap: () => removeImage(2),
-                                      child: Container(
-                                        decoration: const BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Colors.red,
-                                        ),
-                                        padding: const EdgeInsets.all(4),
-                                        child: const Icon(
-                                          Icons.close,
-                                          color: Colors.white,
-                                          size: 18,
-                                        ),
+                                ),
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  child: GestureDetector(
+                                    onTap: () => removeImage(2),
+                                    child: Container(
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.red,
+                                      ),
+                                      padding: const EdgeInsets.all(4),
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 18,
                                       ),
                                     ),
                                   ),
-                                ],
-                              )
-                            else
-                              ElevatedButton.icon(
-                                onPressed: () => pickImage(2),
-                                icon: const Icon(Icons.cloud_upload),
-                                label: const Text("Upload 2"),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ),
-            
-                    SizedBox(
-                      height: 10,
-                    ),
-            
-                    TextFormField(
-                      controller: _dateTimeController,
-                      readOnly: true,
-                      decoration: InputDecoration(
-                        labelText: "select Date & time",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        suffixIcon: IconButton(
-                            onPressed: () {
-                              _selectDateTime(context);
-                            },
-                            icon: Icon(Icons.access_time)),
+                                ),
+                              ],
+                            )
+                          else
+                            ElevatedButton.icon(
+                              onPressed: () => pickImage(2),
+                              icon: const Icon(Icons.cloud_upload),
+                              label: const Text("Upload 2"),
+                            ),
+                        ],
                       ),
-                      onTap: () => _selectDateTime(context),
+                    ],
+                  ),
+
+                  SizedBox(
+                    height: 10,
+                  ),
+
+                  TextFormField(
+                    controller: _dateTimeController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: "select Date & time",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      suffixIcon: IconButton(
+                          onPressed: () {
+                            _selectDateTime(context);
+                          },
+                          icon: Icon(Icons.access_time)),
                     ),
-                     SizedBox(
-                       height: 10,
-                     ),
-                     Row(
-                       children: [
-                         Radio(
-                             value: 0,
-                             groupValue: category,
-                             onChanged: (value) {
-                               setState(() {
-                                 category = value!;
-                               });
-                             },
-                         ),
-                         SizedBox(
-                           width: 5,
-                         ),
-                         Text("Bid"),
-                         SizedBox(
-                           width: 5,
-                         ),
-                         Radio(
-                           value: 1,
+                    onTap: () => _selectDateTime(context),
+                  ),
+                   SizedBox(
+                     height: 10,
+                   ),
+                   Row(
+                     children: [
+                       Radio(
+                           value: 0,
                            groupValue: category,
                            onChanged: (value) {
                              setState(() {
                                category = value!;
                              });
                            },
-                         ),
-                         Text("Direct")
-                       ],
-                     ),
-                     if(category == 1)...[
-                       SizedBox(
-                         height: 10,
-                       ),
-                       Text("Select Agency",
-                         style: TextStyle(fontWeight: FontWeight.bold),
                        ),
                        SizedBox(
-                         height: 5,
+                         width: 5,
                        ),
-                       DropdownButtonFormField(
-                         value: selectedAgency,
-                           hint: Text("choose an agency"),
-                           items: agencies.map((agency){
-                             return DropdownMenuItem(
-                               value: agency,
-                               child: Text(agency),
-                             );
-                           }).toList(),
-                           onChanged: (value) {
-                             setState(() {
-                               selectedAgency = value!;
-                             });
-                           },
-                         decoration: InputDecoration(
-                           border: OutlineInputBorder(
-                             borderRadius: BorderRadius.circular(10),
-                           ),
-                           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                         ),
-                       )
-            
+                       Text("Bid"),
+                       SizedBox(
+                         width: 5,
+                       ),
+                       Radio(
+                         value: 1,
+                         groupValue: category,
+                         onChanged: (value) {
+                           setState(() {
+                             category = value!;
+                           });
+                         },
+                       ),
+                       Text("Direct")
                      ],
-            
-                     SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        _sendRequest();
-                      },
-                      child: const Text("Send Request"),
-                    ),
-                  ],
-                ),
+                   ),
+                   if(category == 1)...[
+                     SizedBox(
+                       height: 10,
+                     ),
+                     Text("Select Agency",
+                       style: TextStyle(fontWeight: FontWeight.bold),
+                     ),
+                     SizedBox(
+                       height: 5,
+                     ),
+                     DropdownButtonFormField(
+                       value: selectedAgency,
+                         hint: Text("choose an agency"),
+                         items: agencies.map((agency){
+                           return DropdownMenuItem(
+                             value: agency,
+                             child: Text(agency),
+                           );
+                         }).toList(),
+                         onChanged: (value) {
+                           setState(() {
+                             selectedAgency = value!;
+                           });
+                         },
+                       decoration: InputDecoration(
+                         border: OutlineInputBorder(
+                           borderRadius: BorderRadius.circular(10),
+                         ),
+                         contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                       ),
+                     )
+
+                   ],
+
+                   SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      _sendRequest();
+                    },
+                    child: const Text("Send Request"),
+                  ),
+                ],
               ),
             ),
           ),

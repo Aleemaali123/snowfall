@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
-import 'homeScreen.dart';
+import 'show_request.dart';
 
 final _firebase = FirebaseAuth.instance;
 final _firestore = FirebaseFirestore.instance; // ✅ Firestore Instance
@@ -22,27 +22,24 @@ class _AuthScreenState extends State<AuthScreen> {
   var _enteredPassword = '';
   var _isLoading = false;
   final _form = GlobalKey<FormState>();
+  //
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _checkUserLoggedIn(); // ✅ Check if user is already logged in
+  // }
+  //
+  // Future<void> _checkUserLoggedIn() async {
+  //   User? user = _firebase.currentUser;
+  //   if (user != null) {
+  //     Future.delayed(Duration.zero, () {
+  //       Navigator.pushReplacement(
+  //         context, MaterialPageRoute(builder: (context) => Homescreen()),
+  //       );
+  //     });
+  //   }
+  // }
 
-<<<<<<< HEAD
-  @override
-  void initState() {
-    super.initState();
-    _checkUserLoggedIn(); // ✅ Check if user is already logged in
-  }
-
-  Future<void> _checkUserLoggedIn() async {
-    User? user = _firebase.currentUser;
-    if (user != null) {
-      Future.delayed(Duration.zero, () {
-        Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => Homescreen()),
-        );
-      });
-    }
-  }
-
-=======
->>>>>>> 9f7300153d54612f6a1810e3be46ac5bc3c3b6ce
   Future<void> _submit() async {
     final isValid = _form.currentState!.validate();
     if (!isValid) return;
@@ -73,35 +70,29 @@ class _AuthScreenState extends State<AuthScreen> {
           "uid": userCredential.user!.uid,
           "createdAt": FieldValue.serverTimestamp(),
         });
-<<<<<<< HEAD
-=======
 
        // print("✅ User Data Saved in Firestore");
->>>>>>> 9f7300153d54612f6a1810e3be46ac5bc3c3b6ce
       }
 
       print("✅ Auth Success: ${userCredential.user?.email}");
 
-<<<<<<< HEAD
-      if (mounted) {
-        Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => Homescreen()),
-        );
-      }
+      // if (mounted) {
+      //   Navigator.pushReplacement(
+      //     context, MaterialPageRoute(builder: (context) => MainScreen()),
+      //   );
+      // }
     } on FirebaseAuthException catch (error) {
-=======
       //Navigate to homepage after successfull login
       if(context.mounted){
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(
-            builder: (context)=>Homescreen()
-        )
-        );
+        // Navigator.pushReplacement(
+        //     context, MaterialPageRoute(
+        //     builder: (context)=>MainScreen()
+        // )
+       // );
       }
 
     }
     on FirebaseAuthException catch (error) {
->>>>>>> 9f7300153d54612f6a1810e3be46ac5bc3c3b6ce
       String message = "Authentication failed!";
       if (error.code == "email-already-in-use") {
         message = "Email is already registered!";
@@ -189,26 +180,18 @@ class _AuthScreenState extends State<AuthScreen> {
                           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                           foregroundColor: Theme.of(context).colorScheme.primary,
                         ),
-<<<<<<< HEAD
                         child: Text("Login"),
-=======
-                        child: Text( "Login" ),
->>>>>>> 9f7300153d54612f6a1810e3be46ac5bc3c3b6ce
                       ),
                       TextButton(
                         onPressed: () {
                           Navigator.push(context, MaterialPageRoute(
-<<<<<<< HEAD
                               builder: (context) => UserRegisterPage()
                           ));
                         },
                         child: Text("Don't have an account? Signup here"),
-=======
-                              builder: (context)=>UserRegisterPage()
-                          ));
-                         },
-                        child: Text( "Don't have an account, Signup here"),
->>>>>>> 9f7300153d54612f6a1810e3be46ac5bc3c3b6ce
+
+
+
                       ),
                     ],
                   ),
