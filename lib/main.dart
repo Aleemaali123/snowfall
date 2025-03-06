@@ -29,30 +29,30 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: AuthScreen(), // ✅ Handles Authentication
+      home: SplashScreen(), // ✅ Handles Authentication
     );
   }
 }
 
-// class AuthWrapper extends StatelessWidget {
-//   const AuthWrapper({super.key});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return StreamBuilder<User?>(
-//       stream: FirebaseAuth.instance.authStateChanges(),
-//       builder: (context, snapshot) {
-//         if (snapshot.connectionState == ConnectionState.waiting) {
-//           return const Center(child: CircularProgressIndicator()); // Loading state
-//         }
-//
-//         // ✅ If user is logged in, go to HomeScreen, else go to AuthScreen
-//         if (snapshot.hasData) {
-//           return const SplashScreen();
-//         } else {
-//           return const AuthScreen();
-//         }
-//       },
-//     );
-//   }
-// }
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator()); // Loading state
+        }
+
+        // ✅ If user is logged in, go to HomeScreen, else go to AuthScreen
+        if (snapshot.hasData) {
+          return const MainScreen();
+        } else {
+          return const AuthScreen();
+        }
+      },
+    );
+  }
+}
