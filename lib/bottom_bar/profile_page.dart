@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -13,7 +16,20 @@ class _ProfilePageState extends State<ProfilePage> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
+  File? image;
   int gender = 0;
+
+  // Function to pick an image from the gallery
+  Future<void> pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        image = File(pickedFile.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,38 +37,35 @@ class _ProfilePageState extends State<ProfilePage> {
         backgroundColor: const Color(0xFFDFFEF4), // ✅ Light greenish blue color
 
         body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(
-              height: 50,
-            ),
-            Padding(
+          child: Column(
+            children: [
+              SizedBox(
+                height: 50,
+              ),
+              Padding(
                 padding: EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Stack(
-                  children  :[
-
+                child: Column(children: [
+                  Stack(children: [
                     InkWell(
                       onTap: () {
-
+                        pickImage();
                       },
                       child: CircleAvatar(
                         radius: 80,
+                        backgroundImage:
+                            image != null ? FileImage(image!) : null,
+                        child: image == null
+                            ? Icon(
+                                Icons.camera_alt_outlined,
+                                size: 40,
+                              )
+                            : null,
                       ),
                     ),
-                    // IconButton(
-                    //     onPressed: () {
-                    //
-                    //     },
-                    //     icon: Icon(Icons.edit)
-                    // ),
                     SizedBox(
                       height: 20,
                     ),
-                  ]
-
-                  ),
+                  ]),
                   SizedBox(
                     height: 20,
                   ),
@@ -73,6 +86,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       suffixIcon: Icon(Icons.mobile_friendly),
                       border: OutlineInputBorder(),
                     ),
+                    keyboardType: TextInputType.phone,
                     controller: _phoneNumberController,
                   ),
                   SizedBox(
@@ -100,7 +114,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   SizedBox(
                     height: 10,
                   ),
-
                   SizedBox(
                     height: 10,
                   ),
@@ -112,44 +125,34 @@ class _ProfilePageState extends State<ProfilePage> {
                         onChanged: (value) {
                           setState(() {
                             gender = value!;
-                             }
-                          );
+                          });
                         },
                       ),
                       Text('Male'),
-        SizedBox(
-          width: 10,
-        ),
+                      SizedBox(
+                        width: 10,
+                      ),
                       Radio(
                         value: 1,
                         groupValue: gender,
                         onChanged: (value) {
                           setState(() {
                             gender = value!;
-                          }
-                          );
+                          });
                         },
                       ),
                       Text('female'),
-
-
-                ],
-              ),
+                    ],
+                  ),
                   SizedBox(
                     height: 20,
                   ),
                   ElevatedButton(
-                      onPressed: () {
-
-                      },
-                      child: Text("Update Profile")
-                  )
-        ]
-            ),
-            ),
-          ],
-        ),
-      )
-    );
+                      onPressed: () {}, child: Text("Update Profile"))
+                ]),
+              ),
+            ],
+          ),
+        ));
   }
 }

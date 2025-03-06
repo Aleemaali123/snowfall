@@ -48,7 +48,7 @@ class AuthWrapper extends StatelessWidget {
 
         // ✅ If user is logged in, go to HomeScreen, else go to AuthScreen
         if (snapshot.hasData) {
-          return const MainScreen();
+          return const SplashScreen();
         } else {
           return const AuthScreen();
         }
