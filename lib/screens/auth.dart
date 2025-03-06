@@ -1,13 +1,13 @@
-import 'package:chtapp/screens/register_page.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:lottie/lottie.dart';
+import '../bottom_bar/main_screen.dart';
+import 'register_page.dart';
 
-import 'show_request.dart';
-
-final _firebase = FirebaseAuth.instance;
-final _firestore = FirebaseFirestore.instance; // ✅ Firestore Instance
+const String firebaseUrl = "https://your-project-id-default-rtdb.firebaseio.com/users.json";
+const String firebaseAuthSignup = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=your-api-key";
+const String firebaseAuthLogin = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=your-api-key";
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -20,96 +20,91 @@ class _AuthScreenState extends State<AuthScreen> {
   var _isLogin = true;
   var _enteredEmail = '';
   var _enteredPassword = '';
-  var _isLoading = false;
+   var _isLoading = false;
   final _form = GlobalKey<FormState>();
-  //
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _checkUserLoggedIn(); // ✅ Check if user is already logged in
-  // }
-  //
-  // Future<void> _checkUserLoggedIn() async {
-  //   User? user = _firebase.currentUser;
-  //   if (user != null) {
-  //     Future.delayed(Duration.zero, () {
-  //       Navigator.pushReplacement(
-  //         context, MaterialPageRoute(builder: (context) => Homescreen()),
-  //       );
-  //     });
-  //   }
-  // }
 
-  Future<void> _submit() async {
+  // ✅ Function to register user (POST)
+  Future<void> _registerUser() async {
     final isValid = _form.currentState!.validate();
     if (!isValid) return;
     _form.currentState!.save();
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      UserCredential userCredential;
-      if (_isLogin) {
-        // ✅ Login User
-        userCredential = await _firebase.signInWithEmailAndPassword(
-          email: _enteredEmail,
-          password: _enteredPassword,
-        );
-      } else {
-        // ✅ Register User
-        userCredential = await _firebase.createUserWithEmailAndPassword(
-          email: _enteredEmail,
-          password: _enteredPassword,
-        );
-
-        // ✅ Save User Data in Firestore
-        await _firestore.collection("users").doc(userCredential.user!.uid).set({
+      final response = await http.post(
+        Uri.parse(firebaseAuthSignup),
+        body: json.encode({
           "email": _enteredEmail,
-          "uid": userCredential.user!.uid,
-          "createdAt": FieldValue.serverTimestamp(),
-        });
+          "password": _enteredPassword,
+          "returnSecureToken": true,
+        }),
+        headers: {"Content-Type": "application/json"},
+      );
 
-       // print("✅ User Data Saved in Firestore");
+      final data = json.decode(response.body);
+      if (response.statusCode == 200) {
+        // ✅ Save user details in Firebase Database
+        final userId = data["localId"];
+        await _saveUserToDatabase(userId);
+        print("✅ User registered successfully: $userId");
+      } else {
+        print("❌ Error: ${data["error"]["message"]}");
       }
-
-      print("✅ Auth Success: ${userCredential.user?.email}");
-
-      // if (mounted) {
-      //   Navigator.pushReplacement(
-      //     context, MaterialPageRoute(builder: (context) => MainScreen()),
-      //   );
-      // }
-    } on FirebaseAuthException catch (error) {
-      //Navigate to homepage after successfull login
-      if(context.mounted){
-        // Navigator.pushReplacement(
-        //     context, MaterialPageRoute(
-        //     builder: (context)=>MainScreen()
-        // )
-       // );
-      }
-
-    }
-    on FirebaseAuthException catch (error) {
-      String message = "Authentication failed!";
-      if (error.code == "email-already-in-use") {
-        message = "Email is already registered!";
-      } else if (error.code == "wrong-password") {
-        message = "Invalid password!";
-      } else if (error.code == "user-not-found") {
-        message = "User does not exist!";
-      }
-
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
-      print("❌ Error: $e");
+      print("❌ Error registering user: $e");
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
+    }
+  }
+
+  // ✅ Function to save user details in Firebase Database (POST)
+  Future<void> _saveUserToDatabase(String userId) async {
+    final response = await http.post(
+      Uri.parse(firebaseUrl),
+      body: json.encode({
+        "uid": userId,
+        "email": _enteredEmail,
+        "createdAt": DateTime.now().toIso8601String(),
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print("✅ User data saved in Firebase");
+    } else {
+      print("❌ Failed to save user data");
+    }
+  }
+
+  // ✅ Function to login user (GET)
+  Future<void> _loginUser() async {
+    final isValid = _form.currentState!.validate();
+    if (!isValid) return;
+    _form.currentState!.save();
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await http.post(
+        Uri.parse(firebaseAuthLogin),
+        body: json.encode({
+          "email": _enteredEmail,
+          "password": _enteredPassword,
+          "returnSecureToken": true,
+        }),
+        headers: {"Content-Type": "application/json"},
+      );
+
+      final data = json.decode(response.body);
+      if (response.statusCode == 200) {
+        print("✅ Login Success: ${data["email"]}");
+      } else {
+        print("❌ Error: ${data["error"]["message"]}");
+      }
+    } catch (e) {
+      print("❌ Error logging in: $e");
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -150,9 +145,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           }
                           return null;
                         },
-                        onSaved: (value) {
-                          _enteredEmail = value!;
-                        },
+                        onSaved: (value) => _enteredEmail = value!,
                       ),
                       const SizedBox(height: 10),
                       TextFormField(
@@ -167,31 +160,34 @@ class _AuthScreenState extends State<AuthScreen> {
                           }
                           return null;
                         },
-                        onSaved: (value) {
-                          _enteredPassword = value!;
-                        },
+                        onSaved: (value) => _enteredPassword = value!,
                       ),
                       const SizedBox(height: 12),
-                      _isLoading
-                          ? const CircularProgressIndicator()
-                          : ElevatedButton(
-                        onPressed: _submit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          foregroundColor: Theme.of(context).colorScheme.primary,
-                        ),
-                        child: Text("Login"),
+                      // _isLoading
+                      //     ? const CircularProgressIndicator()
+                      //     : ElevatedButton(
+                      //   onPressed: _isLogin ? _loginUser : _registerUser,
+                      //   style: ElevatedButton.styleFrom(
+                      //     backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                      //     foregroundColor: Theme.of(context).colorScheme.primary,
+                      //   ),
+                      //   child: Text("Login"),
+                      // ),
+                      ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(
+                                builder: (context)=>MainScreen()
+                            ));
+                          },
+                          child: Text("Login")
                       ),
                       TextButton(
                         onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(
-                              builder: (context) => UserRegisterPage()
-                          ));
+                          setState(() {
+                            Navigator.push(context, MaterialPageRoute(builder: (context)=>UserRegisterPage()));
+                          });
                         },
-                        child: Text("Don't have an account? Signup here"),
-
-
-
+                        child: Text( "Don't have an account? Signup here"),
                       ),
                     ],
                   ),

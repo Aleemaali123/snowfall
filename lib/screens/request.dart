@@ -296,7 +296,7 @@ class _UserRequestPageState extends State<UserRequestPage> {
                   TextFormField(
                     controller: _locationController,
                     decoration: InputDecoration(
-                      labelText: "Your Location",
+                      labelText: "Use Current  Location",
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -307,17 +307,58 @@ class _UserRequestPageState extends State<UserRequestPage> {
                     },
                   ),
                   const SizedBox(height: 10),
+                  // TextFormField(
+                  //   controller: _areaController,
+                  //   decoration: InputDecoration(
+                  //     labelText: "Approximate Area",
+                  //     suffixIcon: const Icon(Icons.area_chart),
+                  //     border: OutlineInputBorder(
+                  //       borderRadius: BorderRadius.circular(20),
+                  //     ),
+                  //   ),
+                  // ),
+
                   TextFormField(
                     controller: _areaController,
+                    readOnly: true, // Prevents manual input
                     decoration: InputDecoration(
                       labelText: "Approximate Area",
-                      suffixIcon: const Icon(Icons.area_chart),
+                      suffixIcon: Icon(Icons.area_chart),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ListTile(
+                                title: Text("Use current location"),
+                                leading: Icon(Icons.my_location),
+                                onTap: () {
+                                  // Implement logic to get current location
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              ListTile(
+                                title: Text("Enter new address"),
+                                leading: Icon(Icons.add),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  // Show a dialog or new screen to enter the address
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
                   ),
-                  const SizedBox(height: 10),
+
+                   SizedBox(height: 10),
                   const Text("Upload Weather Images"),
                   const SizedBox(height: 5),
 

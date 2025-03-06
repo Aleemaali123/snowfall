@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+
 import '../bottom_bar/main_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -14,26 +15,36 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    // ✅ Navigate to HomeScreen after 3 seconds
-    Future.delayed(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-      );
+    // Ensuring navigation works properly using post-frame callback
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+          );
+        }
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // ✅ Change based on your theme
-      body: Center(
-        child: Lottie.asset(
-          'assets/splash.json', // ✅ Your Lottie animation file
-          width: 300,
-          height: 300,
-          fit: BoxFit.contain,
+      backgroundColor: const Color(0xFFDFFEF4),
+      //backgroundColor: Colors.white,
+      body: Stack(
+        children:[
+          Center(
+          child: Lottie.asset(
+            'assets/splash.json', // ✅ Ensure correct path in pubspec.yaml
+            width: double.infinity,
+            height: double.infinity,
+            fit: BoxFit.contain,
+          ),
         ),
+          Center(child: Text("Snow Plow"))
+        ]
       ),
     );
   }
